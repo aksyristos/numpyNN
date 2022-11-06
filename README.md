@@ -12,7 +12,7 @@ The same classifier was implimented with 3 different loss functions:
 3)Exponential
 
 # Initial testing
-The network was tested with data ( belonging to vecto X = [x1, x2] ) following these two hypotheses:
+Before using MNIST, the network (then 2 * 20 * 1) was tested with data ( belonging to vecto X = [x1, x2] ) following these two hypotheses:
 
 H0: x1, x2 are independent with probability density funtion f0(x1, x2) = f0(x1) * f0(x2), f0 ~ N(0, 1)
 
