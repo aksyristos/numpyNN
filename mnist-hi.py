@@ -14,7 +14,7 @@ class_names = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 #plt.grid(False)
 #plt.show()
 
-train_zero_l=[]                 #apomonwnw ta '0' kai ta '8'
+train_zero_l=[]                  #apomonwnw ta '0' kai ta '8'
 train_zero=[]
 train_eight_l=[]
 train_eight=[]
@@ -57,19 +57,20 @@ for i in range(25):
     plt.xlabel(class_names[train_eight_l[i]])
 plt.show()
 
-#%% C_E
+#%% exp
 plott=[]
 li=[]
 
-def g_ce(x,deriv=False):           #activation function
-    if deriv==True: return 1/1-x + 0.01
-    return 1/(1+np.exp(-x)) 
+def g_hi(x):                    #activation function
+    return x
 
-def fi(x):                          #paragwgos fi
-    return 1/((1-x + 0.01))
+def fi(x):                      #paragwgos fi
+    if 1+x>0: return 1
+    return 0
 
-def psi(x):                         #paragwgos psi
-    return -1/((x))
+def psi(x):                     #paragwgos psi
+    if 1-x>0: return -1
+    return 0
 
 def Relu(x):
     k=np.zeros(shape=(300,))
@@ -90,7 +91,8 @@ def mult(z,B):                      #ypologismos B*ReLU'
     return np.reshape(k,[300,1])
     
 def cost(x1,x2):
-    return (-1)*np.log(1-x1 + 0.01)-np.log(x2 + 0.01)       #ta 0.01 mpainoun gia na mhn ginei divide by 0
+    return max(1+x1,0)+max(1-x2,0) 
+    
     
 # deterministic weights
 np.random.seed(1)
@@ -102,6 +104,7 @@ a=np.zeros(shape=(300,))
 b=0
 m=0.001
 
+
 i=k=0
 p=[]
 
@@ -109,28 +112,28 @@ while True:
     # forward propagation
     l0f = train_zero[i].flatten()
     l1f = Relu(np.dot(l0f,A)+a)
-    l2f = g_ce(np.dot(l1f.T,B)+b)
+    l2f = g_hi(np.dot(l1f.T,B)+b)
     
     l0p = train_eight[i].flatten()
     l1p = Relu(np.dot(l0p,A)+a)
-    l2p = g_ce(np.dot(l1p.T,B)+b)
+    l2p = g_hi(np.dot(l1p.T,B)+b)
     
     #stochastic gradient descent
-    A-=m*(fi(l2f)*g_ce(np.dot(l1f.T,B)+b,deriv=True)*np.matmul(mult(l1f,B),np.reshape(l0f,[1,784])).astype(np.int64) + psi(l2p)*g_ce(np.dot(l1p.T,B)+b,deriv=True)*np.matmul(mult(l1p,B),np.reshape(l0p,[1,784])).astype(np.int64) ).T
-    a-=m*np.reshape(fi(l2f)*g_ce(np.dot(l1f.T,B)+b,deriv=True)*mult(l1f,B)+psi(l2p)*g_ce(np.dot(l1p.T,B)+b,deriv=True)*mult(l1p,B),[300,])
-    B-=m*np.reshape(fi(l2f)*g_ce(np.dot(l1f.T,B)+b,deriv=True)*l1f.T+psi(l2p)*g_ce(np.dot(l1p.T,B)+b,deriv=True)*l1p.T,[1,300]).T
-    b-=m*(fi(l2f)*g_ce(np.dot(l1f.T,B)+b,deriv=True)+psi(l2p)*g_ce(np.dot(l1p.T,B)+b,deriv=True))
-    
+    A-=m*(fi(l2f)*np.dot(mult(l1f,B),np.reshape(l0f,[1,784]))+psi(l2p)*np.dot(mult(l1p,B),np.reshape(l0p,[1,784]))).T
+    a-=m*np.reshape(fi(l2f)*mult(l1f,B)+psi(l2p)*mult(l1p,B),[300,])
+    B-=m*np.reshape(fi(l2f)*l1f.T+psi(l2p)*l1p.T,[300,1])
+    b-=m*(fi(l2f)+psi(l2p))
     
     p.append(cost(l2f,l2p))
     
     i+=1
+    #if (i==len(train_eight_l)):
     if (i==len(train_eight_l)):
         plott.append(np.average(p))
         p=[]
         li.append(k)
         #print (plott[k])
-        if (k!=0 and plott[k]>plott[k-1]):    #minimum cost function
+        if k!=0 and plott[k]>plott[k-1]:        #minimum cost function
             break
         k+=1;i=0
 plt.plot(li,plott)
@@ -141,14 +144,14 @@ c1=c2=0
 for i in range(len(test_zero_l)):
     l0 = test_zero[i].flatten()
     l1 = Relu(np.dot(l0,A)+a)
-    l2 = g_ce(np.dot(l1.T,B)+b)
-    if l2>0.5: c1+=1                    #H1 enw eprepe H0
+    l2 = g_hi(np.dot(l1.T,B)+b)
+    if l2>0: c1+=1                          #H1 enw eprepe H0
     
 for i in range(len(test_eight_l)):    
     l0n = test_eight[i].flatten()
     l1n = Relu(np.dot(l0n,A)+a)
-    l2n = g_ce(np.dot(l1n.T,B)+b)
-    if l2n<0.5: c2+=1                   #H0 enw eprepe H1
+    l2n = g_hi(np.dot(l1n.T,B)+b)
+    if l2n<0: c2+=1                         #H0 enw eprepe H1
     
 print (100*(c1+c2)/(len(test_zero_l)+len(test_eight_l)),'%') 
     
